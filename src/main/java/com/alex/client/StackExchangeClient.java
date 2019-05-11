@@ -1,18 +1,59 @@
 package com.alex.client;
 
-import com.alex.api.StackQuestion;
+import com.alex.api.stack.StackQuestionResponse;
+import com.alex.utils.JsonUtils;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
-import java.util.List;
+import javax.ws.rs.core.UriBuilder;
 
 public class StackExchangeClient {
 
+    private CloseableHttpClient HTTP_CLIENT = HttpClients.custom()
+            .setDefaultRequestConfig(RequestConfig.custom()
+                    .setCookieSpec(CookieSpecs.STANDARD).build())
+            .build();
+
     private static final String BASE_URL = "https://api.stackexchange.com";
 
-    public List<StackQuestion> getNewQuestions() {
-        String url = "/2.2/questions?fromdate=1557532800&todate=1557619200&order=desc&sort=activity&site=stackoverflow";
-//        final String url = UriBuilder.fromUri(BASE_URL + "/2.2/questions")
-//                .
-//                .queryParam("adId", quikrAdId).build().toString();
-        return null;
+    public StackQuestionResponse getNewQuestions() {
+        final String url = UriBuilder.fromUri(BASE_URL)
+                .path("2.2/questions")
+                .queryParam("fromdate", "1557532800")
+                .queryParam("todate", "1557619200")
+                .queryParam("order", "desc")
+                .queryParam("site", "stackoverflow")
+                .build().toString();
+        return executeHttpGetRequest(url, StackQuestionResponse.class);
+    }
+
+    public StackQuestionResponse getQuestions(final String ids) {
+        final String url = UriBuilder.fromUri(BASE_URL)
+                .path("/2.2/questions")
+                .path(ids)
+                .queryParam("order", "desc")
+                .queryParam("site", "stackoverflow")
+                .build().toString();
+        return executeHttpGetRequest(url, StackQuestionResponse.class);
+    }
+
+    protected <T> T executeHttpGetRequest(final String url,
+                                          final Class<T> responseClass) {
+        final HttpGet getRequest = new HttpGet(url);
+        try (CloseableHttpResponse response = HTTP_CLIENT.execute(getRequest)) {
+            String getResponse = convertStreamToString(response.getEntity().getContent());
+            return JsonUtils.deserializeV2(getResponse, responseClass);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }
