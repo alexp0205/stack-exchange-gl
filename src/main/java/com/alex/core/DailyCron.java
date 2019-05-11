@@ -10,23 +10,29 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class DailyCron implements Runnable {
 
+    private static Long lastExecutionDate = null;
+
     private StackExchangeClient stackExchangeClient;
 
     @Override
     public void run() {
+        System.out.println("DailyCron");
         long timestamp = MockedTaskQueue.getCurrentTimeStamp();
-        for (int i = 1; i <= 500; i++) {
-            StackQuestionResponse stackQuestionResponse = stackExchangeClient.getNewQuestions(timestamp - 1000 * 60 * 60 * 24, timestamp, i, 10);
-            String questionIds = stackQuestionResponse.getItems().stream()
-                    .map(sq -> sq.getQuestionId().toString())
-                    .collect(Collectors.joining(";"));
-            MockedTaskQueue.addTask(questionIds);
+        long yesterdayTimestamp = timestamp - 1000 * 60 * 60 * 24;
+        if (lastExecutionDate == null || lastExecutionDate < yesterdayTimestamp) {
+            for (int i = 1; i <= 2; i++) {
+                StackQuestionResponse stackQuestionResponse = stackExchangeClient.getNewQuestions(yesterdayTimestamp, timestamp, i, 3);
+                String questionIds = stackQuestionResponse.getItems().stream()
+                        .map(sq -> sq.getQuestionId().toString())
+                        .collect(Collectors.joining(";"));
+                MockedTaskQueue.addTask(questionIds);
+            }
+        } else {
+            try {
+                Thread.sleep(1000 * 60 * 60 * 6);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-    }
-
-    public static void main(String[] args) {
-        Long timestamp = MockedTaskQueue.getCurrentTimeStamp();
-        System.out.println(timestamp);
-        System.out.println(1557532800);
     }
 }

@@ -34,6 +34,7 @@ public class UpdateIndexTask implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("Runner *******************");
         TaskMessage taskMessage = MockedTaskQueue.getTask();
         if (taskMessage == null) {
             try {

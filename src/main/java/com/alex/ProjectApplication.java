@@ -44,11 +44,11 @@ public class ProjectApplication extends Application<ProjectConfiguration> {
 
         ExecutorService pool = Executors.newFixedThreadPool(3);
 
-//        pool.execute(r0);
-//        pool.execute(r1);
-//        pool.execute(r2);
+        pool.execute(r0);
+        pool.execute(r1);
+        pool.execute(r2);
 
-        pool.shutdown();
+//        pool.shutdown();
     }
 
 }
