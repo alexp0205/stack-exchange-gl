@@ -11,6 +11,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 
@@ -37,7 +38,11 @@ public class ElasticClient {
         SearchRequest searchRequest = new SearchRequest();
         searchRequest.indices(QUESTIONS_INDEX);
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.query(QueryBuilders.termQuery("tags", tags));
+        if (!tags.isEmpty()) {
+            BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+            tags.forEach(tag -> boolQueryBuilder.should(QueryBuilders.termQuery("tags", tag)));
+            sourceBuilder.query(boolQueryBuilder);
+        }
         sourceBuilder.from(from);
         sourceBuilder.size(size);
         sourceBuilder.timeout(new TimeValue(60, TimeUnit.SECONDS));
@@ -57,6 +62,12 @@ public class ElasticClient {
         IndexRequest request = new IndexRequest(QUESTIONS_INDEX);
         request.id(question.getQuestionId().toString());
         request.source(JsonUtils.serializeV2(question), XContentType.JSON);
-        return question;
+        try {
+            client.index(request, RequestOptions.DEFAULT);
+            return question;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

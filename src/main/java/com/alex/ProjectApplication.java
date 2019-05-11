@@ -1,7 +1,6 @@
 package com.alex;
 
 import com.alex.client.StackExchangeClient;
-import com.alex.core.UpdateIndexTask;
 import com.alex.db.ElasticClient;
 import com.alex.resources.StackRes;
 import com.alex.service.StackService;
@@ -31,22 +30,22 @@ public class ProjectApplication extends Application<ProjectConfiguration> {
     @Override
     public void run(final ProjectConfiguration configuration,
                     final Environment environment) {
+        final StackExchangeClient stackExchangeClient = new StackExchangeClient();
         final ElasticClient elasticClient = new ElasticClient();
-        final StackService stackService = new StackService(elasticClient);
+        final StackService stackService = new StackService(stackExchangeClient, elasticClient);
         final StackRes stackRes = new StackRes(stackService);
         environment.jersey().register(stackRes);
 
-        final StackExchangeClient stackExchangeClient = new StackExchangeClient();
-        Runnable r1 = new UpdateIndexTask(stackExchangeClient, elasticClient);
-        Runnable r2 = new UpdateIndexTask(stackExchangeClient, elasticClient);
-
-        ExecutorService pool = Executors.newFixedThreadPool(2);
-
-        pool.execute(r1);
-        pool.execute(r2);
+//        Runnable r1 = new UpdateIndexTask();
+//        Runnable r2 = new UpdateIndexTask();
+//
+//        ExecutorService pool = Executors.newFixedThreadPool(2);
+//
+//        pool.execute(r1);
+//        pool.execute(r2);
 
         // pool shutdown ( Step 4)
-        pool.shutdown();
+//        pool.shutdown();
     }
 
 }

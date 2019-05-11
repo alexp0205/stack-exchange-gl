@@ -1,6 +1,7 @@
 package com.alex.resources;
 
 import com.alex.api.Question;
+import com.alex.api.stack.StackQuestionResponse;
 import com.alex.service.StackService;
 import lombok.AllArgsConstructor;
 
@@ -16,16 +17,24 @@ public class StackRes {
     private StackService stackService;
 
     @GET
-    public List<Question> search(@QueryParam("tags") final String tags,
-                                 @QueryParam("from") @DefaultValue("0") final int from,
-                                 @QueryParam("size") @DefaultValue("19") final int size) {
-        return stackService.search(tags, from, size);
+    @Path("questions")
+    public List<Question> searchQuestions(@QueryParam("tags") final String tags,
+                                          @QueryParam("from") @DefaultValue("0") final int from,
+                                          @QueryParam("size") @DefaultValue("19") final int size) {
+        return stackService.searchQuestions(tags, from, size);
     }
 
+    @POST
+    @Path("questions/{questionIds}")
+    public Boolean indexQuestions(@PathParam("questionIds") final String questionIds) {
+        return stackService.indexQuestions(questionIds);
+    }
+
+    // DEBUG APIs
     @GET
-    @Path("{questionId}")
-    public Question getQuestion(@PathParam("transactionId") final Integer questionId) {
-        return stackService.getQuestion(questionId);
+    @Path("exchange/questions/{questionIds}")
+    public StackQuestionResponse getStackExchangeQuestion(@PathParam("questionIds") final String questionIds) {
+        return stackService.getStackExchangeQuestion(questionIds);
     }
 }
 

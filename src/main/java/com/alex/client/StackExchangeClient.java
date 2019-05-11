@@ -45,15 +45,10 @@ public class StackExchangeClient {
                                           final Class<T> responseClass) {
         final HttpGet getRequest = new HttpGet(url);
         try (CloseableHttpResponse response = HTTP_CLIENT.execute(getRequest)) {
-            String getResponse = convertStreamToString(response.getEntity().getContent());
+            String getResponse = JsonUtils.convertStreamToString(response.getEntity().getContent());
             return JsonUtils.deserializeV2(getResponse, responseClass);
         } catch (Exception e) {
             return null;
         }
-    }
-
-    static String convertStreamToString(java.io.InputStream is) {
-        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
-        return s.hasNext() ? s.next() : "";
     }
 }

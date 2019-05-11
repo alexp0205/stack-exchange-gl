@@ -1,24 +1,45 @@
 package com.alex.service;
 
 import com.alex.api.Question;
+import com.alex.api.stack.StackQuestion;
+import com.alex.api.stack.StackQuestionResponse;
+import com.alex.client.StackExchangeClient;
 import com.alex.db.ElasticClient;
+import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
 
 @AllArgsConstructor
 public class StackService {
+    private StackExchangeClient stackExchangeClient;
     private ElasticClient elasticClient;
 
-    public List<Question> search(final String tags,
-                                 final int from,
-                                 final int size) {
-        List<String> tagList = Arrays.asList(tags.split(";"));
+    public List<Question> searchQuestions(final String tags,
+                                          final int from,
+                                          final int size) {
+        List<String> tagList;
+        if (StringUtils.isBlank(tags)) {
+            tagList = Lists.newArrayList();
+        } else {
+            tagList = Arrays.asList(tags.split(";"));
+        }
         return elasticClient.getQuestions(tagList, from, size);
     }
 
-    public Question getQuestion(final Integer questionId) {
-        return null;
+    public Boolean indexQuestions(final String questionIds) {
+        StackQuestionResponse stackQuestionResponse = stackExchangeClient.getQuestions(questionIds);
+        for (StackQuestion stackQuestion : stackQuestionResponse.getItems()) {
+            Question question = new Question(stackQuestion);
+            elasticClient.index(question);
+        }
+        return true;
+    }
+
+
+    public StackQuestionResponse getStackExchangeQuestion(final String questionIds) {
+        return stackExchangeClient.getQuestions(questionIds);
     }
 }
