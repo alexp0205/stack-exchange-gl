@@ -5,6 +5,7 @@ import com.alex.api.stack.StackQuestion;
 import com.alex.api.stack.StackQuestionResponse;
 import com.alex.client.StackExchangeClient;
 import com.alex.db.ElasticClient;
+import com.alex.db.MockedTaskQueue;
 import com.google.common.collect.Lists;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,10 @@ public class StackService {
 
     public Boolean indexQuestions(final String questionIds) {
         StackQuestionResponse stackQuestionResponse = stackExchangeClient.getQuestions(questionIds);
+        if (stackQuestionResponse.getQuotaRemaining() == 0) {
+            // Assuming quoteRemaining will get reset by that time
+            MockedTaskQueue.blockTasksTill(MockedTaskQueue.getCurrentTimeStamp() + 60 * 60 * 6);
+        }
         for (StackQuestion stackQuestion : stackQuestionResponse.getItems()) {
             Question question = new Question(stackQuestion);
             elasticClient.index(question);

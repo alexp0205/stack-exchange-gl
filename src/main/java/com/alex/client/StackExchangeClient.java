@@ -20,11 +20,16 @@ public class StackExchangeClient {
 
     private static final String BASE_URL = "https://api.stackexchange.com";
 
-    public StackQuestionResponse getNewQuestions() {
+    public StackQuestionResponse getNewQuestions(final long fromDate,
+                                                 final long toDate,
+                                                 final int page,
+                                                 final int pageSize) {
         final String url = UriBuilder.fromUri(BASE_URL)
                 .path("2.2/questions")
-                .queryParam("fromdate", "1557532800")
-                .queryParam("todate", "1557619200")
+                .queryParam("fromdate", fromDate)
+                .queryParam("todate", toDate)
+                .queryParam("page", page)
+                .queryParam("pageSize", pageSize)
                 .queryParam("order", "desc")
                 .queryParam("site", "stackoverflow")
                 .build().toString();

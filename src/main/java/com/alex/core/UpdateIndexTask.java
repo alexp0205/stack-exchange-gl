@@ -1,7 +1,7 @@
 package com.alex.core;
 
-import com.alex.client.StackExchangeClient;
-import com.alex.db.ElasticClient;
+import com.alex.api.TaskMessage;
+import com.alex.db.MockedTaskQueue;
 import com.alex.utils.JsonUtils;
 import lombok.AllArgsConstructor;
 import org.apache.http.client.config.CookieSpecs;
@@ -34,12 +34,18 @@ public class UpdateIndexTask implements Runnable {
 
     @Override
     public void run() {
-        // TODO - check if RUN allowed
-        // If not sleep
-        // GET from data store next set of docs to be read
-
-        String questionString = "1;2;3";
-        refreshDocuments(questionString);
+        TaskMessage taskMessage = MockedTaskQueue.getTask();
+        if (taskMessage == null) {
+            try {
+                Thread.sleep(1000 * 60);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("Executing task:" + taskMessage);
+            refreshDocuments(taskMessage.getQuestionIds());
+            MockedTaskQueue.acknowledgeTask(taskMessage.getId());
+        }
 
     }
 
